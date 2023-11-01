@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EZNotes</title>
+</head>
+<body>
+    <h1>知识就是力量我的朋友！</h1>
+    <form method="POST" action="/send_message">
+        <textarea type="text" name="human_input" placeholder="Enter your message"></textarea><br>
+        <button type="submit">Send</button>
+    </form>
+    <div id="response_message"></div>
+    <div id="history"></div>
+
+    <script>
+        const form = document.querySelector('form');
+        const responseMessage = document.getElementById('response_message');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            fetch('/send_message', {
+                method: 'Post',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                responseMessage.innerHTML = data;
+            });
+            form.reset();
+        });
+    </script>
+</body>
+</html>
