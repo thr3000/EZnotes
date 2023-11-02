@@ -2,8 +2,26 @@
 <html>
 <head>
     <title>EZNotes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light h3">EZNotes</nav>
+    <section>
+        <div class="container py-5">
+            <ul class="list-unstyled" id="chat_history">
+            </ul>
+            <div class="bg-white mb-3">
+                <form class="form-outline" method="POST" action="/send_message">
+                  <textarea class="form-control" name="human_input" id="human_input" rows="4" placeholder="Enter your message"></textarea>
+                  <button type="submit" class="btn btn-info btn-rounded float-end mt-2">Send</button>
+                </form>
+            </div>
+        </div>
+      </section>
+    <!--  
     <h1>知识就是力量我的朋友！</h1>
     <form method="POST" action="/send_message">
         <textarea type="text" name="human_input" placeholder="Enter your message"></textarea><br>
@@ -11,13 +29,18 @@
     </form>
     <div id="response_message"></div>
     <div id="history"></div>
-
+    -->
     <script>
         const form = document.querySelector('form');
-        const responseMessage = document.getElementById('response_message');
+        const responseMessage = document.getElementById('chat_history');
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            var question = document.getElementById('human_input').value;
+            var userChatFormat = '<li class="d-flex justify-content-between mb-4"><div class="card"> \
+                    <div class="card-header d-flex justify-content-between p-3"><p class="fw-bold mb-0">USER</p></div> \
+                    <div class="card-body"><p class="mb-0">' + question + '</p></div></div></li>';
+            responseMessage.innerHTML += userChatFormat;
             const formData = new FormData(form);
             fetch('/send_message', {
                 method: 'Post',
@@ -25,7 +48,10 @@
             })
             .then(response => response.text())
             .then(data => {
-                responseMessage.innerHTML = data;
+                var aiChatFormat = '<li class="d-flex justify-content-between mb-4"><div class="card"> \
+                    <div class="card-header d-flex justify-content-between p-3"><p class="fw-bold mb-0">AI</p></div> \
+                    <div class="card-body"><p class="mb-0">' + data + '</p></div></div></li>';
+                responseMessage.innerHTML += aiChatFormat;
             });
             form.reset();
         });
