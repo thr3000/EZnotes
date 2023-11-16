@@ -1,5 +1,11 @@
 import os
 import openai
+from PyPDF2 import PdfReader
+from langchain.chains.question_answering import load_qa_chain
+from langchain.llms import OpenAI
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
@@ -50,6 +56,37 @@ def get_response_from_ai(instructions, history, human_input):
     )
     return completion.choices[0].message.content
 
+def get_answer_from_pdf(human_input):
+    # Read PDF file
+    reader = PdfReader('./templates/Rules for EZnotes note taking.pdf')
+    raw_text = ''
+    for i, page in enumerate(reader.pages):
+        text = page.extract_text()
+        if text:
+            raw_text += text
+    text_splitter = CharacterTextSplitter(
+        separator = '\n',
+        chunk_size = 1000,
+        chunk_overlap = 200,
+        length_function = len,
+    )
+    texts = text_splitter.split_text(raw_text)
+
+    embeddings = OpenAIEmbeddings()
+    doc_search = FAISS.from_texts(texts, embeddings)
+    chain = load_qa_chain(OpenAI(), chain_type = "stuff")
+    docs = doc_search.similarity_search(human_input)
+
+    return chain.run(input_documents=docs, question=human_input)
+
+def is_related_to_pdf(human_input):
+    keywords = ['pdf']
+    question_lower = human_input.lower()
+    for keyword in keywords:
+        if keyword in question_lower:
+            return True
+    return False
+
 # Build web GUI
 from flask import Flask, render_template, request
 
@@ -64,7 +101,10 @@ def home():
 @app.route('/send_message', methods=['POST'])
 def send_message():
     human_input=request.form['human_input']
-    message = get_response_from_ai(INSTRUCTIONS, history, human_input)
+    if is_related_to_pdf(human_input):
+        message = get_answer_from_pdf(human_input)
+    else:
+        message = get_response_from_ai(INSTRUCTIONS, history, human_input)
     history.append((human_input, message))
     return message
 

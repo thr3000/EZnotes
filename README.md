@@ -3,6 +3,7 @@
 ```
 pip install langchain openai
 pip install Flask
+pip install tiktoken
 ```
 ### Start project
 ```
